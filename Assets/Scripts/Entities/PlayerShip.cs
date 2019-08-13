@@ -1,4 +1,5 @@
-﻿using RTools;
+﻿using System;
+using RTools;
 using UnityEngine;
 
 public class PlayerShip : Ship
@@ -12,17 +13,36 @@ public class PlayerShip : Ship
     [Tooltip("Lives indicator for player ship")]
     public LivesPanel livesPanel;
 
-    float time = 0;
+    [Tooltip("Player ship's shield")]
+    public SpriteRenderer shield;
 
+    [Tooltip("Healthbar for shield")]
+    public Healthbar shieldHealth;
+
+    public bool allowInput = true;
+
+    float time = 0;
+    RezTween rechargeTween;
+    
     // Start is called before the first frame update
     void Start()
     {
-        
+        shieldHealth.regenerateHealth = false;
+    }
+
+    public void Initialize()
+    {
+        livesPanel.live = SessionData.lives;
+        shieldHealth.maximumHealth = shieldHealth.health = GameData.Instance.shieldCapacity;
+        UpdateShield();
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (!allowInput)
+            return;
+
         // Move based on keyboard input
         Vector3 movement = new Vector3(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"), 0);
         movement = movement.normalized * moveSpeed * Time.deltaTime;
@@ -33,22 +53,80 @@ public class PlayerShip : Ship
         {
             time -= Time.deltaTime;
         }
-        else if (Input.GetMouseButtonDown(0))
+        else
         {
-            Shoot();
-            time = cooldownTime;
+            if (Input.GetMouseButtonDown(0))
+            {
+                Shoot();
+                time = cooldownTime;
+            }
+            if (Input.GetMouseButtonDown(1))
+            {
+                LaunchRocket();
+                time = cooldownTime;
+            }
         }
 
         // Always facing mouse pointer
-        transform.rotation = Util.GetRotationToMouse(transform.position);
+        spriteTransform.rotation = Util.GetRotationToMouse(transform.position);
     }
 
-    protected override void OnGotShot(int damage)
+    private void LaunchRocket()
     {
-        livesPanel.live--;
-        if (livesPanel.live == 0)
-        {            
-            Scene.SendEvent("OnGameOver");
+        if (SessionData.rocket > 0)
+        {
+            SessionData.rocket--;
+            BulletManager.Instance.GetRocket(this).ShootToMousePointer(transform.position);
+            Scene.SendEvent("OnUsedRocket");
+        }
+    }
+
+    protected override void OnGotShot(int damage, string source)
+    {
+        if (shieldHealth.health > 0)
+        {
+            shieldHealth.health -= damage;
+            UpdateShield();
+
+            if (shieldHealth.health <= 0) shield.gameObject.SetActive(false);
+
+            RezTween.Destroy(ref rechargeTween);
+            rechargeTween = RezTween.DelayedCall(GameData.Instance.shieldRechargeRate, ()=>
+            {
+                shield.gameObject.SetActive(true);
+                rechargeTween = RezTween.ValueRange(shieldHealth.health, shieldHealth.maximumHealth, 0.5f, progress =>
+                {
+                    shieldHealth.health = progress;
+                    UpdateShield();
+                });
+            });
+        }
+        else
+        {
+            livesPanel.live--;
+            if (livesPanel.live == 0)
+            {
+                Scene.SendEvent("OnGameOver");
+            }
+        }        
+    }
+
+    void UpdateShield()
+    {
+        shieldHealth.UpdateHealth();
+
+        Color shieldColor = shield.color;
+        shieldColor.a = shieldHealth.health / shieldHealth.maximumHealth;
+        shield.color = shieldColor;
+    }
+
+    protected override void OnCollideWith(GameObject other)
+    {
+        if (other.CompareTag("Coin"))
+        {
+            Destroy(other);
+            SessionData.coins++;
+            Scene.SendEvent("OnGotCoin");
         }
     }
 }

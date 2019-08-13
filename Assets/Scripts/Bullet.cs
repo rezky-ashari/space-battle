@@ -8,6 +8,9 @@ public class Bullet : MonoBehaviour
     [Tooltip("Bullet damage")]
     public int damage = 40;
 
+    [Tooltip("Who shot this bullet")]
+    public string source;
+
     /// <summary>
     /// Method to execute when this bullet disappear.
     /// </summary>
@@ -28,7 +31,7 @@ public class Bullet : MonoBehaviour
     private void OnBecameInvisible()
     {
         gameObject.SetActive(false);
-        onDisappear(this);
+        onDisappear?.Invoke(this);
     }
 
     public void ShootToMousePointer(Vector3 position, float speed = 3)

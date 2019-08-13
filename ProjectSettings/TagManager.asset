@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Ship
   - Bullet
+  - Coin
   layers:
   - Default
   - TransparentFX

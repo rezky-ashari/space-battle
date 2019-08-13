@@ -7,6 +7,9 @@ public class Ship : MonoBehaviour
     [Tooltip("How fast this bullet")]
     public float bulletSpeed = 5;
 
+    [Tooltip("Transform of ship's sprite object")]
+    public Transform spriteTransform;
+
     /// <summary>
     /// Shoot the bullet to mouse pointer position.
     /// </summary>
@@ -28,12 +31,31 @@ public class Ship : MonoBehaviour
     {
         if (collision.CompareTag("Bullet"))
         {
-            OnGotShot(collision.GetComponent<Bullet>().damage);
+            Bullet bullet = collision.GetComponent<Bullet>();
+            OnGotShot(bullet.damage, bullet.source);
+        }
+        else
+        {
+            OnCollideWith(collision.gameObject);
         }
     }
 
-    protected virtual void OnGotShot(int damage)
+    /// <summary>
+    /// Called when this ship got hit by a bullet.
+    /// </summary>
+    /// <param name="damage">Damage cost</param>
+    /// <param name="source">Who shot this bullet</param>
+    protected virtual void OnGotShot(int damage, string source)
     {
         Debug.Log(gameObject.name  + " got shot. Damage " + damage);
+    }
+
+    /// <summary>
+    /// Called when this ship collided with other game object.
+    /// </summary>
+    /// <param name="gameObject"></param>
+    protected virtual void OnCollideWith(GameObject gameObject)
+    {
+        Debug.Log("Collide with trigger " + gameObject.name);
     }
 }
