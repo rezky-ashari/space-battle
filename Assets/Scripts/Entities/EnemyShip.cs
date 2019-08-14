@@ -29,11 +29,6 @@ public class EnemyShip : Ship
         timer.Start();
     }
 
-    private void OnDisable()
-    {
-        //if (timer != null) timer.Stop();
-    }
-
     /// <summary>
     /// Get the nearest ship.
     /// </summary>
@@ -45,6 +40,7 @@ public class EnemyShip : Ship
         GameObject[] ships = GameObject.FindGameObjectsWithTag("Ship");
         for (int i = 0; i < ships.Length; i++)
         {
+            if (ships[i] == gameObject) continue;
             if (closestShip == null || Vector2.Distance(transform.position, ships[i].transform.position) < Vector2.Distance(transform.position, closestShip.transform.position))
             {
                 closestShip = ships[i];
@@ -78,6 +74,12 @@ public class EnemyShip : Ship
 
     protected override void OnGotShot(int damage, string source)
     {
+        if (source.Equals("Player"))
+        {
+            SessionData.score++;
+            Scene.SendEvent("OnGotHitByPlayer");
+        }
+
         healthbar.health -= damage;
         if (healthbar.health <= 0)
         {
@@ -89,17 +91,11 @@ public class EnemyShip : Ship
             }
         }
         healthbar.UpdateHealth();
-
-        if (source.Equals("Player"))
-        {
-            SessionData.score++;
-            Scene.SendEvent("OnGotHitByPlayer");
-        }
     }
 
     private void OnDestroy()
     {
-        timer.Stop();
+        timer?.Stop(10);
     }
 
     void OnEnemyDestroyed()

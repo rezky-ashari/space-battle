@@ -46,10 +46,15 @@ public class BulletManager : MonoBehaviour
         
     }
 
+    /// <summary>
+    /// Instantiate a rocket.
+    /// </summary>
+    /// <param name="ship">Source ship</param>
+    /// <returns></returns>
     public Bullet GetRocket(Ship ship)
     {
         Bullet rocket = Instantiate(rocketPrefab, transform).GetComponent<Bullet>();
-        Physics2D.IgnoreCollision(rocket.GetComponent<Collider2D>(), ship.GetComponent<Collider2D>());
+        rocket.Initialize(ship);
         rocket.onDisappear = (r) =>
         {
             Debug.Log("On Disappear rocket " + r.name);
@@ -74,14 +79,9 @@ public class BulletManager : MonoBehaviour
         {
             bullet = Instantiate(bulletPrefab, transform).GetComponent<Bullet>();
         }
-        bullet.gameObject.SetActive(true);
+        bullet.Initialize(ship);
         bullet.onDisappear = SaveBullet;
-        bullet.source = ship is PlayerShip ? "Player" : "Enemy";
 
-        Collider2D collider = bullet.GetComponent<Collider2D>();
-        collider.enabled = true;
-        Physics2D.IgnoreCollision(collider, ship.GetComponent<Collider2D>());
-        
         return bullet;
     }
 
@@ -91,7 +91,18 @@ public class BulletManager : MonoBehaviour
     /// <param name="bullet"></param>
     private void SaveBullet(Bullet bullet)
     {
-        bullet.GetComponent<Collider2D>().enabled = false;
         pool.Add(bullet);
+    }
+
+    /// <summary>
+    /// Clear all bullet instances from scene.
+    /// </summary>
+    public void ClearBullets()
+    {
+        GameObject[] bullets = GameObject.FindGameObjectsWithTag("Bullet");
+        for (int i = 0; i < bullets.Length; i++)
+        {
+            if (bullets[i].activeInHierarchy) bullets[i].GetComponent<Bullet>().Destroy();
+        }
     }
 }

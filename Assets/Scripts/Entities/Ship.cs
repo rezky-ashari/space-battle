@@ -10,6 +10,11 @@ public class Ship : MonoBehaviour
     [Tooltip("Transform of ship's sprite object")]
     public Transform spriteTransform;
 
+    protected virtual void Start()
+    {
+        
+    }
+
     /// <summary>
     /// Shoot the bullet to mouse pointer position.
     /// </summary>
@@ -32,7 +37,11 @@ public class Ship : MonoBehaviour
         if (collision.CompareTag("Bullet"))
         {
             Bullet bullet = collision.GetComponent<Bullet>();
-            OnGotShot(bullet.damage, bullet.source);
+            if (bullet != null)
+            {
+                bullet.Destroy();
+                OnGotShot(bullet.damage, bullet.source);
+            }
         }
         else
         {

@@ -23,10 +23,10 @@ public class PlayerShip : Ship
 
     float time = 0;
     RezTween rechargeTween;
-    
-    // Start is called before the first frame update
-    void Start()
+
+    protected override void Start()
     {
+        base.Start();
         shieldHealth.regenerateHealth = false;
     }
 
@@ -34,6 +34,13 @@ public class PlayerShip : Ship
     {
         livesPanel.live = SessionData.lives;
         shieldHealth.maximumHealth = shieldHealth.health = GameData.Instance.shieldCapacity;
+        shieldHealth.lowHealth = (int)(shieldHealth.maximumHealth * 0.25f);
+        shieldHealth.highHealth = (int)(shieldHealth.maximumHealth * 0.75f);
+        UpdateShield();
+    }
+
+    private void OnEnable()
+    {
         UpdateShield();
     }
 
@@ -99,6 +106,7 @@ public class PlayerShip : Ship
                     shieldHealth.health = progress;
                     UpdateShield();
                 });
+                rechargeTween.OnComplete = UpdateShield;
             });
         }
         else

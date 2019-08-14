@@ -87,25 +87,42 @@ public class Healthbar : MonoBehaviour {
     }
 
     // Set the health bar to display the same health value as the health variable:
+    //public void UpdateHealth()
+    //{
+    //    // Change the health bar color acording to how much health the player has:
+    //    if (healthPercentage <= lowHealth && health >= minimumHealth && transform.Find("Bar").GetComponent<Image>().color != lowHealthColor)
+    //    {
+    //        ChangeHealthbarColor(lowHealthColor);
+    //    }
+    //    else if (healthPercentage <= highHealth && health > lowHealth)
+    //    {
+    //        float lerpedColorValue = (float.Parse(healthPercentage.ToString()) - 25) / 41;
+    //        ChangeHealthbarColor(Color.Lerp(lowHealthColor, mediumHealthColor, lerpedColorValue));
+    //    }
+    //    else if (healthPercentage > highHealth && health <= maximumHealth)
+    //    {
+    //        float lerpedColorValue = (float.Parse(healthPercentage.ToString()) - 67) / 33;
+    //        ChangeHealthbarColor(Color.Lerp(mediumHealthColor, highHealthColor, lerpedColorValue));
+    //    }
+
+    //    healthbarDisplay.value = health;
+    //}
+
     public void UpdateHealth()
     {
-        // Change the health bar color acording to how much health the player has:
-        if (healthPercentage <= lowHealth && health >= minimumHealth && transform.Find("Bar").GetComponent<Image>().color != lowHealthColor)
+        if (healthbarDisplay != null) healthbarDisplay.value = health;
+        if (health > highHealth)
         {
-            ChangeHealthbarColor(lowHealthColor);
+            ChangeHealthbarColor(Color.Lerp(highHealthColor, mediumHealthColor, Time.deltaTime));
         }
-        else if (healthPercentage <= highHealth && health > lowHealth)
+        else if (health <= lowHealth)
         {
-            float lerpedColorValue = (float.Parse(healthPercentage.ToString()) - 25) / 41;
-            ChangeHealthbarColor(Color.Lerp(lowHealthColor, mediumHealthColor, lerpedColorValue));
+            ChangeHealthbarColor(Color.Lerp(lowHealthColor, mediumHealthColor, Time.deltaTime));
         }
-        else if (healthPercentage > highHealth && health <= maximumHealth)
+        else
         {
-            float lerpedColorValue = (float.Parse(healthPercentage.ToString()) - 67) / 33;
-            ChangeHealthbarColor(Color.Lerp(mediumHealthColor, highHealthColor, lerpedColorValue));
+            ChangeHealthbarColor(Color.Lerp(mediumHealthColor, highHealthColor, Time.deltaTime));
         }
-
-        healthbarDisplay.value = health;
     }
 
     public void GainHealth(float amount)

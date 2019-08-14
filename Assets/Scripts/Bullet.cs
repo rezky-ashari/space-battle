@@ -8,13 +8,35 @@ public class Bullet : MonoBehaviour
     [Tooltip("Bullet damage")]
     public int damage = 40;
 
-    [Tooltip("Who shot this bullet")]
+    /// <summary>
+    /// Who shot this bullet.
+    /// </summary>
+    [HideInInspector]
     public string source;
+
+    /// <summary>
+    /// Shooter gameObject.
+    /// </summary>
+    [HideInInspector]
+    public Ship sourceObject;
 
     /// <summary>
     /// Method to execute when this bullet disappear.
     /// </summary>
     public Action<Bullet> onDisappear;
+
+    private Collider2D Collider
+    {
+        get
+        {
+            if (_collider == null)
+            {
+                _collider = GetComponent<Collider2D>();
+            }
+            return _collider;
+        }
+    }
+    private Collider2D _collider;
 
     // Start is called before the first frame update
     void Start()
@@ -30,8 +52,29 @@ public class Bullet : MonoBehaviour
 
     private void OnBecameInvisible()
     {
-        gameObject.SetActive(false);
-        onDisappear?.Invoke(this);
+        Destroy();
+    }
+
+    public void Initialize(Ship ship)
+    {
+        source = ship is PlayerShip ? "Player" : "Enemy";
+        sourceObject = ship;
+        gameObject.SetActive(true);
+
+        Physics2D.IgnoreCollision(Collider, sourceObject.GetComponent<Collider2D>(), true);
+    }
+
+    public void Destroy()
+    {
+        if (gameObject.activeSelf)
+        {
+            Collider.enabled = false;
+            gameObject.SetActive(false);
+            GetComponent<Rigidbody2D>().velocity = Vector2.zero;
+            onDisappear?.Invoke(this);
+
+            Collider.enabled = true;
+        }
     }
 
     public void ShootToMousePointer(Vector3 position, float speed = 3)

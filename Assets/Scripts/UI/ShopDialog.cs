@@ -1,8 +1,14 @@
-﻿using RTools;
+﻿using System;
+using RTools;
+using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
 
 public class ShopDialog : PopupDialog
 {
+    public Text coinDisplay;
+
+    [Header("Shop Buttons")]
     public ShopButton addLife;
     public ShopButton rechargeRocket;
     public ShopButton upgradeRocket;
@@ -11,9 +17,10 @@ public class ShopDialog : PopupDialog
 
     GameData GameData => GameData.Instance;
 
-    // Start is called before the first frame update
-    void Start()
+    protected override void Start()
     {
+        base.Start();
+
         AddClickListener(addLife, AddLife);
         AddClickListener(rechargeRocket, RechargeRocket);
         AddClickListener(upgradeRocket, UpgradeRocket);
@@ -26,18 +33,34 @@ public class ShopDialog : PopupDialog
         shopButton.button.onClick.AddListener(listener);
     }
 
-    private void OnEnable()
+    public override void Show()
     {
-        SetInteractable(addLife, SessionData.lives < 3);
-        SetInteractable(rechargeRocket, SessionData.rocket < GameData.rocketCapacity);
-        SetInteractable(upgradeRocket, GameData.rocketCapacity < 10);
-        SetInteractable(upgradeShieldRechargeRate, GameData.shieldRechargeRate > 1);
-        SetInteractable(upgradeShieldCapacity, GameData.shieldCapacity < 100);
+        UpdateCoinDisplay();
+
+        UpdateState(addLife, SessionData.lives < 3, SessionData.lives, 3);
+        UpdateState(rechargeRocket, SessionData.rocket < GameData.rocketCapacity, SessionData.rocket, GameData.rocketCapacity);
+        UpdateState(upgradeRocket, GameData.rocketCapacity < 10, GameData.rocketCapacity, 10);
+        UpdateState(upgradeShieldRechargeRate, GameData.shieldRechargeRate > 1, GameData.shieldRechargeRate + " second(s)");
+        UpdateState(upgradeShieldCapacity, GameData.shieldCapacity < 100, GameData.shieldCapacity, 100);
+
+        base.Show();
     }
 
-    void SetInteractable(ShopButton shopButton, bool interactable)
+    private void UpdateCoinDisplay()
+    {
+        coinDisplay.text = SessionData.coins.ToString();
+    }
+
+    void UpdateState(ShopButton shopButton, bool interactable, string status)
     {
         shopButton.button.interactable = interactable;
+        shopButton.status.text = status;
+    }
+
+    void UpdateState(ShopButton shopButton, bool interactable, int current, int max)
+    {
+        shopButton.button.interactable = interactable;
+        shopButton.status.text = current + "/" + max;
     }
 
     /// <summary>
@@ -63,7 +86,7 @@ public class ShopDialog : PopupDialog
         if (GameData.shieldCapacity >= 100)
         {
             DialogBox.ShowDialog("Shield capacity has reached it's maximum.");
-            SetInteractable(upgradeShieldCapacity, false);
+            upgradeShieldCapacity.button.interactable = false;
             return;
         }
 
@@ -81,7 +104,7 @@ public class ShopDialog : PopupDialog
         if (GameData.shieldRechargeRate <= 1)
         {
             DialogBox.ShowDialog("Can not decrease recharge rate below 1 second.");
-            SetInteractable(upgradeShieldRechargeRate, false);
+            upgradeShieldRechargeRate.button.interactable = false;
             return;
         }
 
@@ -99,7 +122,7 @@ public class ShopDialog : PopupDialog
         if (GameData.rocketCapacity >= 10)
         {
             DialogBox.ShowDialog("You have reached the maximum rocket capacity.");
-            SetInteractable(upgradeRocket, false);
+            upgradeRocket.button.interactable = false;
             return;
         }
 
@@ -115,7 +138,7 @@ public class ShopDialog : PopupDialog
         if (!TryPurchase(rechargeRocket)) return;
 
         SessionData.rocket = GameData.rocketCapacity;
-        SetInteractable(rechargeRocket, false);
+        upgradeRocket.button.interactable = false;
     }
 
     /// <summary>
@@ -128,7 +151,12 @@ public class ShopDialog : PopupDialog
         if (SessionData.coins >= shopButton.cost)
         {
             SessionData.coins -= shopButton.cost;
+            UpdateCoinDisplay();
             return true;
+        }
+        else
+        {
+            DialogBox.ShowDialog("Not enough coins");
         }
         return false;
     }

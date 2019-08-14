@@ -16,6 +16,7 @@ public class EnemyManager : MonoBehaviour
 
     private void SpawnEnemy()
     {
+        Debug.Log("Spawn Enemy");
         Transform spawnPoint = spawnPoints.GetChild(Random.Range(0, spawnPoints.childCount));
         Instantiate(enemyPrefab, spawnPoint.position, Quaternion.identity, transform);
     }
@@ -35,10 +36,11 @@ public class EnemyManager : MonoBehaviour
         SpawnEnemy();
     }
 
-    public void StopSpawn()
+    public void StopSpawnAndDestroyEnemies()
     {
-        spawnTimer.Stop();
-        for (int i = 0; i < transform.childCount; i++)
+        Debug.Log("Stop spawn enemies");
+        spawnTimer.Stop(100);
+        for (int i = transform.childCount - 1; i >= 0; i--)
         {
             GameObject child = transform.GetChild(i).gameObject;
             if (child.CompareTag("Ship")) Destroy(child);
