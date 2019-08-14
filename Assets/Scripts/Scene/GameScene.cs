@@ -20,6 +20,9 @@ public class GameScene : Scene {
     public PlayerShip playerShip;
     public GameObject UICanvas;
     public ShopDialog shopDialog;
+    public HighscoreDialog highscoreDialog;
+    public TutorialDialog tutorialDialog;
+    public GameObject pauseMenu;
     public int roundDuration = 60;
 
     GameData GameData => GameData.Instance;
@@ -28,9 +31,11 @@ public class GameScene : Scene {
     int secondsElapsed;
 
     bool isShowingEndingUI = false;
+    bool firstTimePlay = true;
 
 	// Use this for initialization
 	void Start () {
+        enemyManager.spawnInterval = 11;
         SessionData.Initialize();
         ResetState();
 	}
@@ -55,10 +60,30 @@ public class GameScene : Scene {
         {
             onTick = LogSeconds,
             onComplete = OnTimeUp
-        };
-        roundTimer.Start();
+        };        
 
-        enemyManager.StartSpawn();
+        // Increase enemy linearly
+        if (enemyManager.spawnInterval > 1)
+        {
+            enemyManager.spawnInterval -= 1;
+        }        
+
+        if (firstTimePlay)
+        {
+            tutorialDialog.onClose = () =>
+            {
+                firstTimePlay = false;
+                enemyManager.StartSpawn();
+                roundTimer.Start();
+                Destroy(tutorialDialog.gameObject);
+            };
+            RezTween.DelayedCall(0.5f, () => tutorialDialog.Show());
+        }
+        else
+        {
+            roundTimer.Start();
+            enemyManager.StartSpawn();
+        }
     }
 
     private void LogSeconds()
@@ -69,14 +94,33 @@ public class GameScene : Scene {
 
     // Update is called once per frame
     void Update () {
-		
+		if (!isShowingEndingUI && Input.GetKeyUp(KeyCode.Escape))
+        {
+            Pause();
+        }
 	}
+
+    public void Pause()
+    {
+        pauseMenu.SetActive(true);
+        playerShip.allowInput = false;
+        Time.timeScale = 0;
+    }
 
 	// Handle click event
 	public override void HandleClick(string id, string value)
 	{
         switch (id)
         {
+            case "unpause":
+                Time.timeScale = 1;
+                playerShip.allowInput = true;
+                pauseMenu.SetActive(false);
+                break;
+            case "mainmenu":
+                Time.timeScale = 1;
+                SceneSwitchR.To("MainMenu");
+                break;
             case "continue":
                 shopDialog.Hide();
                 ResetState();
@@ -139,7 +183,7 @@ public class GameScene : Scene {
     {
         ShowEnding("GAME OVER", () =>
         {
-            Debug.Log("Record high score here");
+            highscoreDialog.Show();
         });
     }
 

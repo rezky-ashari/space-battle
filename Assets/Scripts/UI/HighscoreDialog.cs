@@ -20,6 +20,12 @@ public class HighscoreDialog : PopupDialog
 
     public void SaveRecord()
     {
-        Debug.Log("Save record here");
+        if (nameField.text.Trim().Length == 0)
+        {
+            DialogBox.ShowDialog("Plase fill in your name!");
+            return;
+        }
+        GameData.Instance.AddScore(nameField.text, SessionData.score);
+        Scene.SendClickEvent("mainmenu");
     }
 }

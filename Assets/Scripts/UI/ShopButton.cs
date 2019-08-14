@@ -14,7 +14,7 @@ public class ShopButton : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        price.text = GetPlural(SessionData.coins, "coin", "coins");
+        price.text = GetPlural(cost, "coin", "coins");
     }
 
     string GetPlural(int count, string single, string other)

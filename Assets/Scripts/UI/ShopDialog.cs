@@ -35,6 +35,13 @@ public class ShopDialog : PopupDialog
 
     public override void Show()
     {
+        UpdateDisplay();
+
+        base.Show();
+    }
+
+    void UpdateDisplay()
+    {
         UpdateCoinDisplay();
 
         UpdateState(addLife, SessionData.lives < 3, SessionData.lives, 3);
@@ -42,8 +49,6 @@ public class ShopDialog : PopupDialog
         UpdateState(upgradeRocket, GameData.rocketCapacity < 10, GameData.rocketCapacity, 10);
         UpdateState(upgradeShieldRechargeRate, GameData.shieldRechargeRate > 1, GameData.shieldRechargeRate + " second(s)");
         UpdateState(upgradeShieldCapacity, GameData.shieldCapacity < 100, GameData.shieldCapacity, 100);
-
-        base.Show();
     }
 
     private void UpdateCoinDisplay()
@@ -73,6 +78,7 @@ public class ShopDialog : PopupDialog
 
         SessionData.lives++;
         addLife.button.interactable = false;
+        UpdateDisplay();
     }
 
     /// <summary>
@@ -91,6 +97,7 @@ public class ShopDialog : PopupDialog
         }
 
         GameData.shieldCapacity += 10;
+        UpdateDisplay();
     }
 
     /// <summary>
@@ -109,6 +116,7 @@ public class ShopDialog : PopupDialog
         }
 
         GameData.shieldRechargeRate -= 0.5f;
+        UpdateDisplay();
     }
 
     /// <summary>
@@ -127,6 +135,7 @@ public class ShopDialog : PopupDialog
         }
 
         GameData.rocketCapacity++;
+        UpdateDisplay();
     }
 
     /// <summary>
@@ -139,6 +148,7 @@ public class ShopDialog : PopupDialog
 
         SessionData.rocket = GameData.rocketCapacity;
         upgradeRocket.button.interactable = false;
+        UpdateDisplay();
     }
 
     /// <summary>
@@ -151,7 +161,6 @@ public class ShopDialog : PopupDialog
         if (SessionData.coins >= shopButton.cost)
         {
             SessionData.coins -= shopButton.cost;
-            UpdateCoinDisplay();
             return true;
         }
         else
