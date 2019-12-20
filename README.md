@@ -1,2 +1,2 @@
 # space-battle
-For Technical Assignment
+Demo project
